@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VNHS Math Portal</title>
+    <style>
+        body { 
+            font-family: 'Courier New', Courier, monospace; 
+            background: #e0e0e0; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            padding: 40px 20px; 
+            margin: 0;
+        }
+
+        .input-box { 
+            background: white; 
+            padding: 25px; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1); 
+            margin-bottom: 30px; 
+            text-align: center;
+            width: 100%;
+            max-width: 350px;
+        }
+
+        input {
+            padding: 12px;
+            width: 85%;
+            margin-bottom: 15px;
+            border: 2px solid #1a5e37;
+            border-radius: 8px;
+            font-family: inherit;
+            text-align: center;
+            font-size: 1.1em;
+        }
+
+        button {
+            padding: 12px 20px;
+            background-color: #1a5e37; 
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            width: 95%;
+            font-size: 1em;
+        }
+
+        button:hover { background-color: #144629; }
+
+        /* Receipt Aesthetic */
+        #receipt { 
+            background: #fff; 
+            width: 320px; 
+            padding: 25px; 
+            box-shadow: 0 0 20px rgba(0,0,0,0.15); 
+            display: none;
+            position: relative;
+            color: #333;
+        }
+
+        #receipt::after {
+            content: "";
+            position: absolute;
+            bottom: -10px;
+            left: 0;
+            width: 100%;
+            height: 10px;
+            background: linear-gradient(-135deg, #fff 5px, transparent 0), 
+                        linear-gradient(135deg, #fff 5px, transparent 0);
+            background-size: 10px 10px;
+        }
+
+        .center { text-align: center; }
+        .dashed { border-bottom: 2px dashed #333; margin: 15px 0; }
+        .flex { display: flex; justify-content: space-between; }
+        .total { font-weight: bold; font-size: 1.1em; margin-top: 10px; }
+        .signature-area { margin-top: 30px; text-align: center; line-height: 1.2; }
+        
+        .print-btn {
+            margin-top: 30px;
+            background-color: #555;
+            display: none;
+        }
+
+        @media print {
+            .input-box, .print-btn { display: none !important; }
+            body { background: white; padding: 0; }
+            #receipt { box-shadow: none; display: block !important; border: 1px solid #eee; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="input-box">
+        <h2 style="margin-top:0; color:#1a5e37;">VNHS Portal</h2>
+        <p>Mathematics Department</p>
+        <input type="text" id="lrnInput" placeholder="Enter 12-digit LRN" maxlength="12">
+        <br>
+        <button id="mainBtn" onclick="generateReceipt()">Generate Grade Receipt</button>
+    </div>
+
+    <div id="receipt">
+        <div class="center">
+            <strong style="font-size: 1.2em;">VICTORIA NATIONAL HIGH SCHOOL</strong><br>
+            San Gavino, Victoria, Tarlac<br>
+            Math Department<br>
+            ********************************
+        </div>
+        
+        <p>
+            DATE: <span id="r-date"></span><br>
+            LRN:  <span id="r-lrn"></span><br>
+            NAME: <span id="r-name" style="text-transform: uppercase; font-weight: bold;"></span>
+        </p>
+        
+        <div class="dashed"></div>
+        
+        <div class="flex" style="font-weight: bold;">
+            <span>SUBJECT</span>
+            <span>GRADE</span>
+        </div>
+        
+        <div class="dashed"></div>
+        
+        <div class="flex">
+            <span>MATHEMATICS</span>
+            <span id="r-grade">--</span>
+        </div>
+        
+        <div class="dashed"></div>
+        
+        <div class="flex total">
+            <span>REMARKS:</span>
+            <span id="r-status">---</span>
+        </div>
+        
+        <div class="signature-area">
+            ********************************<br><br>
+            <strong>JOSHUA S. JOSE, SST-I</strong><br>
+            <em>Subject Teacher</em>
+        </div>
+
+        <div class="center" style="margin-top: 20px; font-size: 0.85em;">
+            "Believe in yourself and all that<br>
+            you are. Keep striving!"
+        </div>
+    </div>
+
+    <button class="print-btn" id="printBtn" onclick="window.print()">Download/Print Receipt</button>
+
+    <script>
+        // Your live Sheety link
+        const API_URL = 'https://api.sheety.co/989b6a8dcae7b6bb5842e5ec019122de/gradingSystem/sheet1';
+
+        async function generateReceipt() {
+            const lrnInput = document.getElementById('lrnInput').value.trim();
+            const receiptDiv = document.getElementById('receipt');
+            const printBtn = document.getElementById('printBtn');
+            const mainBtn = document.getElementById('mainBtn');
+            
+            if (lrnInput === "") {
+                alert("Please enter an LRN.");
+                return;
+            }
+
+            mainBtn.innerText = "Searching...";
+            mainBtn.disabled = true;
+
+            try {
+                const response = await fetch(API_URL);
+                const data = await response.json();
+                
+                // Matches the name of your sheet tab
+                const students = data.sheet1; 
+                
+                // Finds student where LRN matches
+                const student = students.find(s => s.lrn.toString() === lrnInput);
+
+                if (student) {
+                    document.getElementById('r-lrn').innerText = student.lrn;
+                    document.getElementById('r-name').innerText = student.name;
+                    document.getElementById('r-grade').innerText = student.grade;
+                    
+                    const now = new Date();
+                    document.getElementById('r-date').innerText = now.toLocaleDateString() + " " + now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                    
+                    const status = student.grade >= 75 ? "PASSED" : "FAILED";
+                    document.getElementById('r-status').innerText = status;
+                    document.getElementById('r-status').style.color = student.grade >= 75 ? "black" : "red";
+                    
+                    receiptDiv.style.display = 'block';
+                    printBtn.style.display = 'block';
+                } else {
+                    alert("LRN not found. Please check your data in Google Sheets.");
+                    receiptDiv.style.display = 'none';
+                    printBtn.style.display = 'none';
+                }
+            } catch (error) {
+                console.error("Error:", error);
+                alert("Cannot connect to your Google Sheet. Ensure your Sheety headers are 'lrn', 'name', and 'grade' in lowercase.");
+            } finally {
+                mainBtn.innerText = "Generate Grade Receipt";
+                mainBtn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
