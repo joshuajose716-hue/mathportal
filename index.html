@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Grade Receipt App</title>
+    <style>
+        body { font-family: 'Courier New', Courier, monospace; background: #f4f4f4; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        .input-box { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        
+        /* Receipt Styling */
+        #receipt { 
+            background: #fff; width: 300px; padding: 20px; 
+            box-shadow: 0 0 10px rgba(0,0,0,0.2); display: none;
+            border-top: 5px solid #333;
+        }
+        .center { text-align: center; }
+        .dashed { border-bottom: 1px dashed #000; margin: 10px 0; }
+        .flex { display: flex; justify-content: space-between; }
+        .total { font-weight: bold; font-size: 1.2em; }
+    </style>
+</head>
+<body>
+
+    <div class="input-box">
+        <h3>Enter Student LRN</h3>
+        <input type="text" id="lrnInput" placeholder="12-digit LRN">
+        <button onclick="generateReceipt()">Print Grade</button>
+    </div>
+
+    <div id="receipt">
+        <div class="center">
+            <strong>ACADEMIA HIGH SCHOOL</strong><br>
+            123 Education Lane, Manila<br>
+            ***************************
+        </div>
+        
+        <p>DATE: <span id="r-date"></span><br>
+        LRN: <span id="r-lrn"></span></p>
+        
+        <div class="dashed"></div>
+        
+        <div class="flex">
+            <span>DESCRIPTION</span>
+            <span>GRADE</span>
+        </div>
+        
+        <div class="dashed"></div>
+        
+        <div class="flex">
+            <span>MATHEMATICS</span>
+            <span id="r-grade">00</span>
+        </div>
+        
+        <div class="dashed"></div>
+        
+        <div class="flex total">
+            <span>REMARKS:</span>
+            <span id="r-status">---</span>
+        </div>
+        
+        <div class="center" style="margin-top: 20px;">
+            ***************************<br>
+            THANK YOU FOR STUDYING!<br>
+            Keep up the hard work.
+        </div>
+    </div>
+
+    <script>
+        // Mock Database
+        const studentData = {
+            "123456789012": 95,
+            "987654321098": 82,
+            "111222333444": 74
+        };
+
+        function generateReceipt() {
+            const lrn = document.getElementById('lrnInput').value;
+            const receiptDiv = document.getElementById('receipt');
+            
+            if (studentData[lrn]) {
+                const grade = studentData[lrn];
+                document.getElementById('r-lrn').innerText = lrn;
+                document.getElementById('r-date').innerText = new Date().toLocaleDateString();
+                document.getElementById('r-grade').innerText = grade;
+                document.getElementById('r-status').innerText = grade >= 75 ? "PASSED" : "FAILED";
+                
+                receiptDiv.style.display = 'block';
+            } else {
+                alert("LRN not found in our records.");
+                receiptDiv.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
